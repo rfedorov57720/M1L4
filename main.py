@@ -253,8 +253,9 @@ def heal_pokemon(message):
     if username in Pokemon.pokemons.keys():
         pokemon = Pokemon.pokemons[username]
         
-        if pokemon.health < pokemon.max_health:
-            pokemon.health = pokemon.max_health
+        # Изменяем условие с health < max_health на hp < max_hp
+        if pokemon.hp < pokemon.max_hp:
+            pokemon.heal()  # Используем метод heal() из класса
             bot.send_message(
                 message.chat.id,
                 f"✨ {pokemon.name} полностью восстановил здоровье!\n\n{pokemon.info()}",

@@ -10,12 +10,17 @@ class Pokemon:
         self.name = self.get_name()
         self.img = self.get_img()
         self.hp = randint(200, 400)
+        self.max_hp = self.hp  # Добавляем максимальное здоровье
         self.power = randint(30, 60)
-        self.defense = self.get_defense()  # теперь метод существует
+        self.defense = self.get_defense()
         self.type = self.get_types()
         self.abilities = self.get_abilities()
         self.experience = 0
         self.level = 1
+        
+        # Добавляем атрибуты для совместимости с main.py
+        self.health = self.hp
+        self.max_health = self.max_hp
         
         Pokemon.pokemons[pokemon_trainer] = self
     
@@ -69,11 +74,15 @@ class Pokemon:
             if chance == 1:
                 return "Покемон-волшебник применил щит в сражение"
         if enemy.hp > self.power:
-            enemy.hp -= self.power
-            return f"Сражение @{self.pokemon_trainer} с @{enemy.pokemon_trainer}"
+            damage = self.power
+            enemy.hp -= damage
+            enemy.health = enemy.hp  # Обновляем для совместимости
+            return f"Сражение @{self.pokemon_trainer} с @{enemy.pokemon_trainer}\n{self.name} нанес {damage} урона!"
         else:
+            damage = enemy.hp
             enemy.hp = 0
-            return f"Победа @{self.pokemon_trainer} над @{enemy.pokemon_trainer}! "
+            enemy.health = 0
+            return f"Победа @{self.pokemon_trainer} над @{enemy.pokemon_trainer}!\n{self.name} нанес {damage} урона!"
     
     def gain_experience(self, exp_points):
         self.experience += exp_points
@@ -86,22 +95,26 @@ class Pokemon:
     def level_up(self):
         """Повышение характеристик при повышении уровня"""
         self.hp += randint(5, 10)
+        self.max_hp = self.hp  # Обновляем максимальное здоровье
+        self.health = self.hp
         self.power += randint(2, 5)
         self.defense += randint(2, 5)
     
     def take_damage(self, damage):
         actual_damage = max(0, damage - self.defense // 4)
         self.hp -= actual_damage
+        self.health = self.hp
         return actual_damage
     
     def heal(self):
         """Восстановление HP"""
-        self.hp = randint(200, 400)  # Возвращаем к случайному значению
+        self.hp = self.max_hp  # Восстанавливаем до максимального
+        self.health = self.hp
     
     def info(self):
         return f"""
 Имя твоего покемона: {self.name}
-HP: {self.hp}
+HP: {self.hp}/{self.max_hp}
 Атака: {self.power}
 Защита: {self.defense}
 Тип: {self.type}
@@ -126,14 +139,36 @@ HP: {self.hp}
 
 
 class Wizard(Pokemon):
+    def __init__(self, pokemon_trainer):
+        super().__init__(pokemon_trainer)
+        self.super_power = randint(1, 8)
+        
     def attack(self, enemy):
-        return super().attack(enemy)
+        print("Покемон-волшебник применил щит в сражение")
+        # Добавляем защиту для волшебника
+        original_defense = self.defense
+        self.defense += self.super_power
+        result = super().attack(enemy)
+        # Возвращаем защиту обратно после атаки
+        self.defense = original_defense
+        return result
+    
+    def info(self):
+        return super().info() + f"\nСупер-способность: Волшебник (щит +{self.super_power})"
 
 
 class Fighter(Pokemon):
+    def __init__(self, pokemon_trainer):
+        super().__init__(pokemon_trainer)
+        self.super_attack = randint(5, 15)
+        
     def attack(self, enemy):
-        super_power = randint(5, 15)
-        self.power += super_power
+        print(f"Боец применил супер-атаку силой: {self.super_attack}")
+        original_power = self.power
+        self.power += self.super_attack
         result = super().attack(enemy)
-        self.power -= super_power
-        return result + f"\nБоец применил супер-атаку силой: {super_power}"
+        self.power = original_power
+        return result
+    
+    def info(self):
+        return super().info() + f"\nСупер-способность: Боец (урон +{self.super_attack})"
