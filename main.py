@@ -15,7 +15,7 @@ def create_main_keyboard():
         types.KeyboardButton("🎮 Создать покемона (/go)"),
         types.KeyboardButton("⚔️ Атаковать (/attack)"),
         types.KeyboardButton("❤️ Лечение (/heal)"),
-        types.KeyboardButton("📊 Моя статистика (/info)"),
+        types.KeyboardButton("📊 Моя статистика (/info)"),  # Эта кнопка
         types.KeyboardButton("👥 Игроки (/players)"),
         types.KeyboardButton("❓ Помощь (/help)")
     ]
@@ -279,14 +279,33 @@ def show_info(message):
     """Показать информацию о своем покемоне"""
     username = message.from_user.username
     
+    # Проверяем, есть ли username у пользователя
+    if not username:
+        bot.reply_to(message, "У тебя нет username! Установи его в настройках Telegram.")
+        return
+    
+    # Проверяем, есть ли у пользователя покемон
     if username in Pokemon.pokemons.keys():
         pokemon = Pokemon.pokemons[username]
-        bot.send_message(message.chat.id, pokemon.info())
-        bot.send_photo(message.chat.id, pokemon.show_img())
+        
+        # Формируем информационное сообщение
+        info_text = f"📊 **ИНФОРМАЦИЯ О ПОКЕМОНЕ** 📊\n\n"
+        info_text += pokemon.info()
+        
+        # Добавляем информацию о способностях для супер-классов
+        if isinstance(pokemon, Wizard):
+            info_text += f"\n\n✨ **Супер-способность**: Волшебник (повышенная защита)"
+        elif isinstance(pokemon, Fighter):
+            info_text += f"\n\n⚡ **Супер-способность**: Боец (повышенная атака)"
+        
+        # Отправляем информацию и фото
+        bot.send_message(message.chat.id, info_text, parse_mode='Markdown')
+        bot.send_photo(message.chat.id, pokemon.show_img(), caption=f"✨ {pokemon.name}")
     else:
+        # Если покемона нет, предлагаем создать
         bot.send_message(
             message.chat.id,
-            "У тебя нет покемона. Создай его командой /go",
+            "❌ У тебя нет покемона!\n\nСоздай его командой /go",
             reply_markup=create_main_keyboard()
         )
 
@@ -328,7 +347,7 @@ def handle_text(message):
         attack_pok(message)
     elif text == "❤️ Лечение (/heal)":
         heal_pokemon(message)
-    elif text == "📊 Моя статистика (/info)":
+    elif text == "📊 Моя статистика (/info)":  # Обработка кнопки
         show_info(message)
     elif text == "👥 Игроки (/players)":
         show_players(message)

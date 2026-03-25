@@ -1,5 +1,12 @@
 from random import randint
 import requests
+from datetime import datetime, timedelta
+
+now = datetime.now()
+print('Текущая дата и время:', now)
+
+
+
 
 class Pokemon:
     pokemons = {}
@@ -9,9 +16,10 @@ class Pokemon:
         self.pokemon_number = randint(1, 1000)
         self.name = self.get_name()
         self.img = self.get_img()
-        self.hp = randint(200, 400)
+        self.hp = randint(300, 500)
         self.max_hp = self.hp  # Добавляем максимальное здоровье
-        self.power = randint(30, 60)
+        self.power = randint(20, 50)
+        self.last_feed_time = datetime.now()
         self.defense = self.get_defense()
         self.type = self.get_types()
         self.abilities = self.get_abilities()
@@ -137,6 +145,15 @@ HP: {self.hp}/{self.max_hp}
     def __str__(self):
         return self.info()
 
+    def feed(self, feed_interval = 20, hp_increase = 10 ):
+        current_time = datetime.now()  
+        delta_time = timedelta(seconds=feed_interval)  
+        if (current_time - self.last_feed_time) > delta_time:
+            self.hp += hp_increase
+            self.last_feed_time = current_time
+            return f"Здоровье покемона увеличено. Текущее здоровье: {self.hp}"
+        else:
+            return f"Следующее время кормления покемона: {self.last_feed_time+delta_time}"
 
 class Wizard(Pokemon):
     def __init__(self, pokemon_trainer):
@@ -155,7 +172,10 @@ class Wizard(Pokemon):
     
     def info(self):
         return super().info() + f"\nСупер-способность: Волшебник (щит +{self.super_power})"
-
+        
+    def feed(self, feed_interval = 20, hp_increase = 20 ):
+       return super().feed(feed_interval, hp_increase)
+      
 
 class Fighter(Pokemon):
     def __init__(self, pokemon_trainer):
@@ -172,3 +192,7 @@ class Fighter(Pokemon):
     
     def info(self):
         return super().info() + f"\nСупер-способность: Боец (урон +{self.super_attack})"
+    
+            
+    def feed(self, feed_interval = 10, hp_increase = 10 ):
+         return super().feed(feed_interval, hp_increase)
